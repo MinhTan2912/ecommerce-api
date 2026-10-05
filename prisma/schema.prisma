@@ -1,0 +1,91 @@
+// Prisma schema for E-commerce MVP
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  roleId   Int    @id @default(autoincrement()) @map("roleid")
+  roleName String @map("rolename")
+
+  users User[]
+
+  @@map("Role")
+}
+
+model MemberShip {
+  mid   Int    @id @default(autoincrement())
+  mname String
+  score Int
+
+  users User[]
+
+  @@map("MemberShip")
+}
+
+model User {
+  uid      Int    @id @default(autoincrement())
+  username String @unique
+  fullname String
+  password String
+
+  roleId Int @map("roleid")
+  mid    Int
+
+  role       Role       @relation(fields: [roleId], references: [roleId])
+  membership MemberShip @relation(fields: [mid], references: [mid])
+  orders     Order[]
+
+  @@map("User")
+}
+
+model Product {
+  pid      Int     @id @default(autoincrement())
+  pname    String
+  price    Decimal @db.Decimal(10, 2)
+  quantity Int
+
+  orderDetails OrderDetail[]
+
+  @@map("Product")
+}
+
+model Order {
+  oid      Int      @id @default(autoincrement())
+  uid      Int
+  createat DateTime @default(now())
+
+  user         User          @relation(fields: [uid], references: [uid])
+  orderDetails OrderDetail[]
+  shipments    Shipment[]
+
+  @@map("Order")
+}
+
+model OrderDetail {
+  oid       Int
+  pid       Int
+  qty       Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [oid], references: [oid])
+  product Product @relation(fields: [pid], references: [pid])
+
+  @@id([oid, pid])
+  @@map("OrderDetail")
+}
+
+model Shipment {
+  shipid Int    @id @default(autoincrement())
+  oid    Int
+  status String
+
+  order Order @relation(fields: [oid], references: [oid])
+
+  @@map("Shipment")
+}
